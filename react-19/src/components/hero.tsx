@@ -62,7 +62,7 @@ const Hero = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const silenceTimer = useRef<NodeJS.Timeout | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [setLoading] = useState(false);
   const textRef = useRef<HTMLParagraphElement | null>(null);
 
   
