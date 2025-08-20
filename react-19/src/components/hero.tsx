@@ -1,5 +1,5 @@
 import { Mic } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import SplitText from "gsap/SplitText";
 
