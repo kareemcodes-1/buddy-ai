@@ -19,9 +19,12 @@ load_dotenv()
 app = FastAPI()
 
 
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+FRONTEND_PATH = os.getenv("FRONTEND_PATH")
+
 origins = [
-    "http://localhost:5173",
-    "localhost:5173"
+    FRONTEND_URL,
+    FRONTEND_PATH
 ]
 
 
