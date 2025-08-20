@@ -62,7 +62,6 @@ const Hero = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const silenceTimer = useRef<NodeJS.Timeout | null>(null);
-  const [setLoading] = useState(false);
   const textRef = useRef<HTMLParagraphElement | null>(null);
 
   
@@ -109,13 +108,9 @@ recognition.onresult = async (event: SpeechRecognitionEvent) => {
       lastProcessedTranscript.current = currentTranscript;
       setTranscript(currentTranscript);
 
-      setLoading(true);
 
 
       const prediction = await predictIntent(currentTranscript);
-      console.log(prediction);
-
-      setLoading(false);
 
       if (prediction?.confidence > 0.85 && prediction?.response) {
         speak(prediction.response);
