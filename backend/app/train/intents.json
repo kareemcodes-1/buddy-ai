@@ -1,0 +1,175 @@
+{
+  "intents": [
+    {
+      "tag": "create_todo_today",
+      "patterns": [
+        "create a todo for today",
+        "create a todo for me today",
+        "create a to-do for today",
+        "create a to-do for me today",
+        "create a to do for me today",
+        "add a todo for today",
+        "add a to do for today",
+        "add a to-do for today",
+        "help me create a to-do for today",
+        "help me create a todo for today",
+        "help me create a to do for today",
+        "help me create a to-do for me today",
+        "I want to wash my clothes today",
+        "please add wash the dishes today",
+        "remind me to clean the house today",
+        "put a task to do laundry today",
+        "can you add cleaning the kitchen today",
+        "add call mom today",
+        "schedule meeting for today",
+        "today I want to finish my report",
+        "please create a task for today",
+        "make a to-do for today",
+        "today's tasks"
+      ]
+    },
+    {
+      "tag": "create_todo_tomorrow",
+      "patterns": [
+        "create a todo for tomorrow",
+        "create a todo for me tomorrow",
+        "create a to-do for tomorrow",
+        "create a to-do for me tomorrow",
+        "create a to do for me tomorrow",
+        "add a todo for tomorrow",
+        "add a to do for tomorrow",
+        "add a to-do for tomorrow",
+        "help me create a to-do for tomorrow",
+        "help me create a todo for tomorrow",
+        "help me create a to do for tomorrow",
+        "help me create a to-do for me tomorrow",
+        "I want to wash my clothes tomorrow",
+        "please add wash the dishes tomorrow",
+        "remind me to clean the house tomorrow",
+        "put a task to do laundry tomorrow",
+        "can you add cleaning the kitchen tomorrow",
+        "add call mom tomorrow",
+        "schedule meeting for tomorrow",
+        "tomorrow I want to finish my report",
+        "please create a task for tomorrow",
+        "make a to-do for tomorrow",
+        "tomorrow's tasks"
+      ]
+    },
+
+    {
+  "tag": "read_todos_today",
+  "patterns": [
+    "what todos do I have for today",
+     "what todo's do I have for today",
+    "what to-do's do I have for today",
+    "what to-dos do I have for today",
+    "show me my todos for today",
+    "show me my to-dos for today",
+    "show me my to-do's for today",
+     "show me my todo's for today",
+    "list today's tasks",
+    "read my todos for today",
+    "what are my tasks today"
+  ]
+},
+{
+  "tag": "read_todos_tomorrow",
+  "patterns": [
+    "what todos do I have for tomorrow",
+    "what todo's do I have for tomorrow",
+    "what to-do's do I have for tomorrow",
+    "show me my todos for tomorrow",
+    "list tomorrow's tasks",
+    "read my to-dos for tomorrow",
+     "read my to-do's for tomorrow",
+    "read my todos for tomorrow",
+    "what are my tasks tomorrow"
+  ]
+}, 
+    {
+      "tag": "delete_todo",
+      "patterns": [
+        "delete todo",
+        "remove task",
+        "remove the todo",
+        "delete the note about shopping",
+        "please delete the task",
+        "remove that todo",
+        "get rid of the task",
+        "erase the reminder",
+        "delete my reminder"
+      ]
+    },
+    {
+      "tag": "update_todo",
+      "patterns": [
+        "update todo",
+        "edit task",
+        "change the todo",
+        "change the note about shopping",
+        "modify my task",
+        "edit that todo",
+        "update the reminder",
+        "change my note",
+        "fix the task"
+      ]
+    },
+    {
+      "tag": "greeting",
+      "patterns": [
+        "hello",
+        "hi",
+        "hey",
+        "wagwan bruh",
+        "what's up",
+        "good morning",
+        "morning",
+        "good morning everyone",
+        "hey good morning",
+        "morning folks",
+        "morning mate",
+        "good morning mate",
+        "morning buddy",
+        "good morning buddy",
+        "good morning friend",
+        "hey there",
+        "hi there",
+        "hello there",
+        "hiya",
+        "greetings",
+        "good day",
+        "good day to you"
+      ]
+    },
+    {
+      "tag": "about",
+      "patterns": [
+        "who are you",
+        "what are you",
+        "what can you do",
+        "tell me about yourself",
+        "introduce yourself",
+        "what is your purpose",
+        "what do you do",
+        "who created you",
+        "what is your name",
+        "can you help me",
+        "what are you for"
+      ]
+    },
+    {
+      "tag": "none",
+      "patterns": [
+        "random words",
+        "what is the weather",
+        "tell me a joke",
+        "how old are you",
+        "open the door",
+        "play music",
+        "I don't know",
+        "blah blah"
+      ]
+    }
+  ]
+}
