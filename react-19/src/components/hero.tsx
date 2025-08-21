@@ -69,7 +69,7 @@ const Hero = () => {
 
   
 
- const startListening = () => {
+const startListening = () => {
   const SR =
     typeof window !== "undefined" &&
     ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
@@ -82,53 +82,45 @@ const Hero = () => {
   const recognition: SpeechRecognition = new SR();
   recognition.lang = "en-US";
   recognition.interimResults = true;
-  recognition.continuous = true;
+  recognition.continuous = true; // Works on Chrome, ignored on iOS
 
   recognition.onstart = () => {
     setIsListening(true);
     setTranscript("");
+    lastProcessedTranscript.current = "";
   };
 
+  recognition.onresult = async (event: SpeechRecognitionEvent) => {
+    const currentTranscript = Array.from(event.results)
+      .map((res) => res[0].transcript)
+      .join(" ")
+      .trim();
 
-recognition.onstart = () => {
-  setIsListening(true);
-  setTranscript("");
-  lastProcessedTranscript.current = "";
-};
+    if (event.results[event.results.length - 1].isFinal) {
+      if (lastProcessedTranscript.current !== currentTranscript) {
+        lastProcessedTranscript.current = currentTranscript;
+        setTranscript(currentTranscript);
 
-recognition.onresult = async (event: SpeechRecognitionEvent) => {
-  const currentTranscript = Array.from(event.results)
-    .map((res) => res[0].transcript)
-    .join(" ")
-    .trim();  // Trim spaces here!
+        const prediction = await predictIntent(currentTranscript);
 
-  if (event.results[event.results.length - 1].isFinal) {
-    // Only proceed if this transcript is different from last processed one
-    if (lastProcessedTranscript.current !== currentTranscript) {
-      lastProcessedTranscript.current = currentTranscript;
-      setTranscript(currentTranscript);
+        if (prediction?.confidence > 0.85 && prediction?.response) {
+          speak(prediction.response);
 
-
-
-      const prediction = await predictIntent(currentTranscript);
-
-      if (prediction?.confidence > 0.85 && prediction?.response) {
-        speak(prediction.response);
-
-        if (prediction.intent === "create_todo" && prediction.target) {
-          await createTodo({ text: prediction.task_text, section: prediction.target });
+          if (prediction.intent === "create_todo" && prediction.target) {
+            await createTodo({
+              text: prediction.task_text,
+              section: prediction.target,
+            });
+          }
+        } else {
+          speak("Sorry, I didn't quite get that.");
         }
-      } else {
-        speak("Sorry, I didn't quite get that.");
       }
     }
-  }
 
-  if (silenceTimer.current) clearTimeout(silenceTimer.current);
-  silenceTimer.current = setTimeout(() => recognition.stop(), 2000);
-};
-
-
+    if (silenceTimer.current) clearTimeout(silenceTimer.current);
+    silenceTimer.current = setTimeout(() => recognition.stop(), 2000);
+  };
 
   recognition.onerror = (e) => {
     console.error("Speech recognition error:", e.error);
@@ -137,11 +129,18 @@ recognition.onresult = async (event: SpeechRecognitionEvent) => {
 
   recognition.onend = () => {
     setIsListening(false);
+
+    // 🔑 iOS Safari workaround: auto-restart if still in listening mode
+    if (isListening) {
+      console.log("Restarting recognition (iOS Safari fix)...");
+      recognition.start();
+    }
   };
 
   recognition.start();
   speechRef.current = recognition;
 };
+
 
   useEffect(() => {
      window.speechSynthesis.onvoiceschanged = () => {
