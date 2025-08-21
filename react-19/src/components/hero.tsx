@@ -63,6 +63,8 @@ const Hero = () => {
   const [transcript, setTranscript] = useState("");
   const silenceTimer = useRef<NodeJS.Timeout | null>(null);
   const textRef = useRef<HTMLParagraphElement | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
+
 
   
   const lastProcessedTranscript = useRef<string>("");
@@ -82,7 +84,7 @@ const startListening = () => {
   const recognition: SpeechRecognition = new SR();
   recognition.lang = "en-US";
   recognition.interimResults = true;
-  recognition.continuous = true; // Works on Chrome, ignored on iOS
+  recognition.continuous = false; // only while holding
 
   recognition.onstart = () => {
     setIsListening(true);
@@ -90,37 +92,43 @@ const startListening = () => {
     lastProcessedTranscript.current = "";
   };
 
-  recognition.onresult = async (event: SpeechRecognitionEvent) => {
-    const currentTranscript = Array.from(event.results)
-      .map((res) => res[0].transcript)
-      .join(" ")
-      .trim();
+recognition.onresult = async (event: SpeechRecognitionEvent) => {
+  let currentTranscript = "";
 
-    if (event.results[event.results.length - 1].isFinal) {
-      if (lastProcessedTranscript.current !== currentTranscript) {
-        lastProcessedTranscript.current = currentTranscript;
-        setTranscript(currentTranscript);
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    currentTranscript += event.results[i][0].transcript;
+  }
 
-        const prediction = await predictIntent(currentTranscript);
+  currentTranscript = currentTranscript.trim();
+  setTranscript(currentTranscript);
 
-        if (prediction?.confidence > 0.85 && prediction?.response) {
-          speak(prediction.response);
+  if (currentTranscript) {
+    setShowTranscript(true); // 👈 show transcript immediately
+  }
 
-          if (prediction.intent === "create_todo" && prediction.target) {
-            await createTodo({
-              text: prediction.task_text,
-              section: prediction.target,
-            });
-          }
-        } else {
-          speak("Sorry, I didn't quite get that.");
+  if (event.results[event.results.length - 1].isFinal) {
+    if (lastProcessedTranscript.current !== currentTranscript) {
+      lastProcessedTranscript.current = currentTranscript;
+
+      const prediction = await predictIntent(currentTranscript);
+
+      if (prediction?.confidence > 0.85 && prediction?.response) {
+        speak(prediction.response);
+
+        if (prediction.intent === "create_todo" && prediction.target) {
+          await createTodo({
+            text: prediction.task_text,
+            section: prediction.target,
+          });
         }
+      } else {
+        speak("Sorry, I didn't quite get that.");
       }
     }
+  }
+};
 
-    if (silenceTimer.current) clearTimeout(silenceTimer.current);
-    silenceTimer.current = setTimeout(() => recognition.stop(), 2000);
-  };
+
 
   recognition.onerror = (e) => {
     console.error("Speech recognition error:", e.error);
@@ -128,18 +136,31 @@ const startListening = () => {
   };
 
   recognition.onend = () => {
-    setIsListening(false);
+  setIsListening(false);
 
-    // 🔑 iOS Safari workaround: auto-restart if still in listening mode
-    if (isListening) {
-      console.log("Restarting recognition (iOS Safari fix)...");
-      recognition.start();
-    }
-  };
+  // Hide transcript after 2s
+  if (transcript) {
+    setTimeout(() => {
+      setShowTranscript(false);
+
+      // Clear the actual text a bit after fade-out
+      setTimeout(() => {
+        setTranscript("");
+      }, 700); // match your transition duration (700ms)
+    }, 2000);
+  }
+};
+
 
   recognition.start();
   speechRef.current = recognition;
 };
+
+const stopListening = () => {
+  speechRef.current?.stop();
+};
+
+
 
 
   useEffect(() => {
@@ -180,30 +201,35 @@ const startListening = () => {
         <div id="nucleus" className={`${isListening && "start"}`}></div>
       </div>
 
-      {!isListening && (
-        <button
-          onClick={startListening}
-          className="w-16 h-16 flex items-center justify-center rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg transition-transform transform hover:scale-110"
-        >
-          <Mic />
-        </button>
-      )}
 
-      {isListening && (
-        <p
+  <button
+    onMouseDown={startListening}
+    onMouseUp={stopListening}
+    onTouchStart={startListening}
+    onTouchEnd={stopListening}
+    className="w-16 h-16 flex items-center justify-center rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg active:scale-95 transition-transform"
+  >
+    <Mic />
+  </button>
+
+<p
   ref={textRef}
-  className="mb-4 text-gray-400 capitalize"
+  className={`mb-4 capitalize transition-opacity duration-700 ${
+    isListening ? "text-gray-200" : "text-gray-500"
+  }`}
   style={{
-    fontSize: "clamp(1rem, 5vw, 3rem)", // min, preferred, max
+    fontSize: "clamp(1rem, 5vw, 3rem)",
     textAlign: "center",
     wordBreak: "break-word",
     maxWidth: "90vw",
+    opacity: showTranscript ? 1 : 0, // 👈 fade out after 2s
   }}
 >
-  {transcript ? transcript : "I'm Listening..."}
+  {transcript}
 </p>
 
-      )}
+
+
 
        {/* {loading && (
     <p className="my-4 lg:text-[3rem] text-[2.5rem] text-gray-400 capitalize">

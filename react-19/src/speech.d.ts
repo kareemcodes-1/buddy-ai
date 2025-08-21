@@ -6,6 +6,7 @@ interface SpeechRecognition extends EventTarget {
   start(): void;
   stop(): void;
   abort(): void;
+
   onaudiostart?: (this: SpeechRecognition, ev: Event) => any;
   onsoundstart?: (this: SpeechRecognition, ev: Event) => any;
   onspeechstart?: (this: SpeechRecognition, ev: Event) => any;
@@ -30,6 +31,7 @@ declare var webkitSpeechRecognition: {
 };
 
 interface SpeechRecognitionEvent extends Event {
+  readonly resultIndex: number; // ✅ add this
   readonly results: SpeechRecognitionResultList;
 }
 
