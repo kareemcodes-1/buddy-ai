@@ -31,11 +31,15 @@ const createTodo = async ({
 };
 
 const speak = (text: string) => {
+  if (!text) return;
+
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "en-US";
 
-  const assignVoice = () => {
+  const assignVoiceAndSpeak = () => {
     const voices = window.speechSynthesis.getVoices();
+
+    // Pick a female/Google US English voice if available
     const femaleVoice = voices.find(
       (v) =>
         v.lang === "en-US" &&
@@ -44,17 +48,24 @@ const speak = (text: string) => {
           v.name.toLowerCase().includes("victoria") ||
           v.name.toLowerCase().includes("google us english"))
     );
+
     if (femaleVoice) utterance.voice = femaleVoice;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+
+    // ✅ Instead of cancel() first, just stop current and then speak
+    window.speechSynthesis.cancel(); // clear previous
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance);
+    }, 50); // tiny delay helps iOS
   };
 
   if (window.speechSynthesis.getVoices().length === 0) {
-    window.speechSynthesis.onvoiceschanged = assignVoice;
+    // Safari/iOS loads voices async
+    window.speechSynthesis.onvoiceschanged = assignVoiceAndSpeak;
   } else {
-    assignVoice();
+    assignVoiceAndSpeak();
   }
 };
+
 
 const Hero = () => {
   const speechRef = useRef<SpeechRecognition | null>(null);
