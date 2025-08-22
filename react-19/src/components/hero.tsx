@@ -32,29 +32,35 @@ const createTodo = async ({
   );
   return res.json();
 };
-
 const speak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
+  const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "en-US";
 
-  // Pick a female voice if available
-  const voices = window.speechSynthesis.getVoices();
-  const femaleVoice = voices.find(
-    (v) =>
-      v.lang === "en-US" &&
-      (v.name.toLowerCase().includes("female") ||
-       v.name.toLowerCase().includes("woman") ||
-       v.name.toLowerCase().includes("victoria") || // common macOS voice
-       v.name.toLowerCase().includes("google us english"))
-  );
-  
-  if (femaleVoice) {
-    utterance.voice = femaleVoice;
+  const assignVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      const femaleVoice = voices.find(
+        (v) =>
+          v.lang === "en-US" &&
+          (v.name.toLowerCase().includes("female") ||
+            v.name.toLowerCase().includes("woman") ||
+            v.name.toLowerCase().includes("victoria") ||
+            v.name.toLowerCase().includes("google us english"))
+      );
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+    }
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // If voices not loaded yet, wait for them
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => assignVoice();
+  } else {
+    assignVoice();
   }
-
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
-
 };
 
 const Hero = () => {
