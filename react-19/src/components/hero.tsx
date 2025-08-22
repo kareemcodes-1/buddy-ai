@@ -76,6 +76,7 @@ const Hero = () => {
     const fadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const startListening = () => {
+    speak('Hi')
     const SR =
       typeof window !== "undefined" &&
       ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
