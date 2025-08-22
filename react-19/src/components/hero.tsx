@@ -1,10 +1,10 @@
-import { Mic } from "lucide-react";
+import { FaMicrophone } from "react-icons/fa";
+import { FaSquare } from "react-icons/fa";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import SplitText from "gsap/SplitText";
 
 gsap.registerPlugin(SplitText);
-
 
 const predictIntent = async (text: string) => {
   const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/predict`, {
@@ -22,42 +22,35 @@ const createTodo = async ({
   text: string;
   section: string;
 }) => {
-  const res = await fetch(
-    `${import.meta.env.VITE_BACKEND_URL}/api/notion/create`,
-    {
-      method: "POST",
-      body: JSON.stringify({ content: text, section }),
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notion/create`, {
+    method: "POST",
+    body: JSON.stringify({ content: text, section }),
+    headers: { "Content-Type": "application/json" },
+  });
   return res.json();
 };
+
 const speak = (text: string) => {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "en-US";
 
   const assignVoice = () => {
     const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      const femaleVoice = voices.find(
-        (v) =>
-          v.lang === "en-US" &&
-          (v.name.toLowerCase().includes("female") ||
-            v.name.toLowerCase().includes("woman") ||
-            v.name.toLowerCase().includes("victoria") ||
-            v.name.toLowerCase().includes("google us english"))
-      );
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-      }
-    }
+    const femaleVoice = voices.find(
+      (v) =>
+        v.lang === "en-US" &&
+        (v.name.toLowerCase().includes("female") ||
+          v.name.toLowerCase().includes("woman") ||
+          v.name.toLowerCase().includes("victoria") ||
+          v.name.toLowerCase().includes("google us english"))
+    );
+    if (femaleVoice) utterance.voice = femaleVoice;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
   };
 
-  // If voices not loaded yet, wait for them
   if (window.speechSynthesis.getVoices().length === 0) {
-    window.speechSynthesis.onvoiceschanged = () => assignVoice();
+    window.speechSynthesis.onvoiceschanged = assignVoice;
   } else {
     assignVoice();
   }
@@ -66,142 +59,101 @@ const speak = (text: string) => {
 const Hero = () => {
   const speechRef = useRef<SpeechRecognition | null>(null);
   const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const silenceTimer = useRef<NodeJS.Timeout | null>(null);
+  const [transcript, setTranscript] = useState(""); // only final transcript
   const textRef = useRef<HTMLParagraphElement | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+    const fadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const startListening = () => {
+    const SR =
+      typeof window !== "undefined" &&
+      ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
-  
-  const lastProcessedTranscript = useRef<string>("");
-
-  
-
-const startListening = () => {
-      speak('Hi')
-  const SR =
-    typeof window !== "undefined" &&
-    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-
-  if (!SR) {
-    alert("Your browser does not support speech recognition.");
-    return;
-  }
-
-  const recognition: SpeechRecognition = new SR();
-  recognition.lang = "en-US";
-  recognition.interimResults = true;
-  recognition.continuous = false; // only while holding
-
-  recognition.onstart = () => {
-    setIsListening(true);
-    setTranscript("");
-    lastProcessedTranscript.current = "";
-  };
-
-recognition.onresult = async (event: SpeechRecognitionEvent) => {
-  let currentTranscript = "";
-
-  for (let i = event.resultIndex; i < event.results.length; i++) {
-    currentTranscript += event.results[i][0].transcript;
-  }
-
-  currentTranscript = currentTranscript.trim();
-  setTranscript(currentTranscript);
-
-  if (currentTranscript) {
-    setShowTranscript(true); // 👈 show transcript immediately
-  }
-
-  if (event.results[event.results.length - 1].isFinal) {
-    if (lastProcessedTranscript.current !== currentTranscript) {
-      lastProcessedTranscript.current = currentTranscript;
-
-      const prediction = await predictIntent(currentTranscript);
-
-      if (prediction?.confidence > 0.85 && prediction?.response) {
-        speak(prediction.response);
-
-        if (prediction.intent === "create_todo" && prediction.target) {
-          await createTodo({
-            text: prediction.task_text,
-            section: prediction.target,
-          });
-        }
-      } else {
-        speak("Sorry, I didn't quite get that.");
-      }
+    if (!SR) {
+      alert("Your browser does not support speech recognition.");
+      return;
     }
-  }
-};
 
+    const recognition: SpeechRecognition = new SR();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false; // required for iOS
 
+    recognition.onstart = () => setIsListening(true);
 
-  recognition.onerror = (e) => {
-    console.error("Speech recognition error:", e.error);
-    setIsListening(false);
+    // store final result in a variable
+    let finalTranscriptTemp = "";
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalTranscriptTemp += result[0].transcript + " ";
+        }
+      }
+    };
+
+    recognition.onerror = (e) => console.error("Speech recognition error:", e.error);
+
+   recognition.onend = () => {
+      setIsListening(false);
+
+      if (finalTranscriptTemp.trim()) {
+        setTranscript(finalTranscriptTemp.trim());
+        setShowTranscript(true);
+
+        // animate fade-out after 3 seconds
+        if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
+        fadeTimeoutRef.current = setTimeout(() => {
+          setShowTranscript(false);
+          // remove text after fade duration (700ms)
+          setTimeout(() => setTranscript(""), 700);
+        }, 3000);
+
+        // send to backend after stopping
+        (async () => {
+          const prediction = await predictIntent(finalTranscriptTemp.trim());
+          if (prediction?.confidence > 0.85 && prediction?.response) {
+            speak(prediction.response);
+            if (prediction.intent === "create_todo" && prediction.target) {
+              await createTodo({
+                text: prediction.task_text,
+                section: prediction.target,
+              });
+            }
+          } else {
+            speak("Sorry, I didn't quite get that.");
+          }
+        })();
+      }
+    };
+
+    recognition.start();
+    speechRef.current = recognition;
   };
 
-  recognition.onend = () => {
-  setIsListening(false);
+  const stopListening = () => {
+    speechRef.current?.stop();
+  };
 
-  // Hide transcript after 2s
-  if (transcript) {
-    setTimeout(() => {
-      setShowTranscript(false);
-
-      // Clear the actual text a bit after fade-out
-      setTimeout(() => {
-        setTranscript("");
-      }, 700); // match your transition duration (700ms)
-    }, 2000);
-  }
-};
-
-
-  recognition.start();
-  speechRef.current = recognition;
-};
-
-const stopListening = () => {
-  speechRef.current?.stop();
-};
-
-
-
+  const toggleListening = () => {
+    if (isListening) stopListening();
+    else startListening();
+  };
 
   useEffect(() => {
-     window.speechSynthesis.onvoiceschanged = () => {
-    console.log("Available voices:", window.speechSynthesis.getVoices());
-    };
-
-
-    return () => {
-      speechRef.current?.stop();
-      if (silenceTimer.current) clearTimeout(silenceTimer.current);
-    };
-  }, []);
-
-  useEffect(() => {
-  if (transcript && textRef.current) {
-    // Split text into words
-    const split = new SplitText(textRef.current, { type: "words" });
-
-    // Animate each word
-    gsap.from(split.words, {
-      y: 50,
-      opacity: 0,
-      stagger: 0.1,
-      duration: 0.5,
-      ease: "power3.out"
-    });
-
-    // Cleanup to avoid duplicate spans when text changes
-    return () => {
-      split.revert();
-    };
-  }
-}, [transcript]);
+    if (transcript && textRef.current) {
+      const split = new SplitText(textRef.current, { type: "words" });
+      gsap.from(split.words, {
+        y: 50,
+        opacity: 0,
+        stagger: 0.05,
+        duration: 0.4,
+        ease: "power3.out",
+      });
+      return () => split.revert();
+    }
+  }, [transcript]);
 
   return (
     <section className="bg-black text-white h-screen flex flex-col items-center justify-center">
@@ -210,40 +162,26 @@ const stopListening = () => {
         <div id="nucleus" className={`${isListening && "start"}`}></div>
       </div>
 
+      <button
+        onClick={toggleListening}
+        className="w-16 h-16 flex items-center justify-center rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg active:scale-95 transition-transform"
+      >
+        {isListening ? <FaSquare className="text-[1.4rem]"/> : <FaMicrophone className="text-[1.4rem]" />}
+      </button>
 
-  <button
-    onMouseDown={startListening}
-    onMouseUp={stopListening}
-    onTouchStart={startListening}
-    onTouchEnd={stopListening}
-    className="w-16 h-16 flex items-center justify-center rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg active:scale-95 transition-transform"
-  >
-    <Mic />
-  </button>
-
-<p
-  ref={textRef}
-  className={`mb-4 capitalize transition-opacity duration-700 ${
-    isListening ? "text-gray-200" : "text-gray-500"
-  }`}
-  style={{
-    fontSize: "clamp(1rem, 5vw, 3rem)",
-    textAlign: "center",
-    wordBreak: "break-word",
-    maxWidth: "90vw",
-    opacity: showTranscript ? 1 : 0, // 👈 fade out after 2s
-  }}
->
-  {transcript}
-</p>
-
-
-
-       {/* {loading && (
-    <p className="my-4 lg:text-[3rem] text-[2.5rem] text-gray-400 capitalize">
-      Processing your request...
-    </p>
-  )} */}
+      <p
+        ref={textRef}
+        className={`mb-4 mt-[1rem] capitalize transition-opacity duration-700 text-white opacity-[.8]`}
+        style={{
+          fontSize: "clamp(1.5rem, 5vw, 3rem)",
+          textAlign: "center",
+          wordBreak: "break-word",
+          maxWidth: "90vw",
+          opacity: showTranscript ? 1 : 0,
+        }}
+      >
+        {transcript}
+      </p>
     </section>
   );
 };
