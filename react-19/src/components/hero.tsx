@@ -78,6 +78,7 @@ const Hero = () => {
   
 
 const startListening = () => {
+      speak('Hi')
   const SR =
     typeof window !== "undefined" &&
     ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
@@ -173,6 +174,8 @@ const stopListening = () => {
      window.speechSynthesis.onvoiceschanged = () => {
     console.log("Available voices:", window.speechSynthesis.getVoices());
     };
+
+
     return () => {
       speechRef.current?.stop();
       if (silenceTimer.current) clearTimeout(silenceTimer.current);
@@ -233,7 +236,6 @@ const stopListening = () => {
 >
   {transcript}
 </p>
-
 
 
 
