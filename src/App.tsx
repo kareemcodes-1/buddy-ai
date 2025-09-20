@@ -80,7 +80,7 @@ export default function Home() {
                   desc: "Publish or download your creatives instantly and start driving conversions.",
                   gradient: "from-primary/15 to-accent/15",
                 },
-              ].map(({ step, icon, title, desc, gradient }) => (
+              ].map(({ step, icon, title, desc,  }) => (
                 <Card
                   key={step}
                   className="relative group hover:border-[2px] transition-all duration-300 border bg-gradient-to-br from-card to-card/50 backdrop-blur-sm"
