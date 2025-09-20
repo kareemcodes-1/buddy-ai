@@ -87,34 +87,7 @@
     "what are my tasks tomorrow"
   ]
 }, 
-    {
-      "tag": "delete_todo",
-      "patterns": [
-        "delete todo",
-        "remove task",
-        "remove the todo",
-        "delete the note about shopping",
-        "please delete the task",
-        "remove that todo",
-        "get rid of the task",
-        "erase the reminder",
-        "delete my reminder"
-      ]
-    },
-    {
-      "tag": "update_todo",
-      "patterns": [
-        "update todo",
-        "edit task",
-        "change the todo",
-        "change the note about shopping",
-        "modify my task",
-        "edit that todo",
-        "update the reminder",
-        "change my note",
-        "fix the task"
-      ]
-    },
+    
     {
       "tag": "greeting",
       "patterns": [
