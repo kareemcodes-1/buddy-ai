@@ -8,9 +8,12 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+<<<<<<< HEAD
 cookies.txt
 venv/
 __pycache__/
+=======
+>>>>>>> 6a515f193902669e66dc4fadeb4f049948565e36
 .env
 dist
 dist-ssr
@@ -25,4 +28,8 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
+<<<<<<< HEAD
 *.sw?
+=======
+*.sw?
+>>>>>>> 6a515f193902669e66dc4fadeb4f049948565e36
